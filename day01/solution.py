@@ -1,4 +1,3 @@
-# day01: calorie counting
 from typing import List, Tuple
 import re
 from functools import reduce
