@@ -1,5 +1,6 @@
 from typing import List, Tuple
 from functools import reduce
+from heapq import heappush, heappop
 
 class Solution:
     def read_input(self, fname) -> List[int]:
@@ -87,8 +88,40 @@ class Solution:
                     empty_block_locs[empty_i] = (empty_pos+sz, empty_sz-sz)
                     break
         return reduce(lambda x, y: x + (y[0]*y[1]) if y[1] != '.' else x, enumerate(full_output), 0)
+    
+    def part02_optimized(self, fname) -> int:
+        line = self.read_input(fname)
+        full_output = []
+        file_blocks = []
+        empty_blocks = [[] for _ in range(10)]
+        pos = 0
+        file_id = 0
+        for i, sz in enumerate(line):
+            if i % 2 == 0:
+                file_blocks.append((pos, sz, file_id))
+                for _ in range(sz):
+                    full_output.append(file_id)
+                    pos += 1
+                file_id += 1
+            else:
+                heappush(empty_blocks[sz], pos)
+                for _ in range(sz):
+                    full_output.append('.')
+                    pos += 1
+        for pos, sz, file_id in reversed(file_blocks):
+            for empty_sz in range(sz, len(empty_blocks)):
+                if len(empty_blocks[empty_sz]) > 0 and pos > empty_blocks[empty_sz][0]:
+                    leftmost_empty_interval = heappop(empty_blocks[empty_sz])
+                    for i in range(sz):
+                        full_output[leftmost_empty_interval+i] = file_id
+                        full_output[pos+i] = '.'
+                    heappush(empty_blocks[empty_sz-sz], leftmost_empty_interval+sz)
+                    break
+
+        return reduce(lambda x, y: x + (y[0]*y[1]) if y[1] != '.' else x, enumerate(full_output), 0)
 
 if __name__ == "__main__":
     solution = Solution()
     #print(solution.read_input("sample.txt"))
-    print(solution.part02("sample.txt"))
+    #print(solution.part02("test.txt"))
+    print(solution.part02_optimized("test2.txt"))
